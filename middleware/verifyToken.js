@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const user = require("../model/user.model");S
+const user = require("../model/user.model");
 
 exports.verifyToken = async (req, res, next) => {
     try {
@@ -22,3 +22,4 @@ exports.verifyToken = async (req, res, next) => {
         return res.json({ message: "Server Error" });
     }
 };
+

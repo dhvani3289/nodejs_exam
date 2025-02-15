@@ -118,23 +118,34 @@ exports.updateAdmin = async (req, res) => {
 
 // ---------------------------------------------------------------------------
 
-// ADD TASK (ADMIN)
+// ADD TASK (ADMIN) 
 exports.addTask = async (req, res) => {
     try {
-        let findAdmin = await user.findById(req.params.id);
-        const findSameTask = await task.findOne({ title: req.body.title });
-        if (!findSameTask) {
-            req.body.taskAuthor = req.user.username;
-            const addTask = await task.create(req.body);
-            return res.status(200).json({ message: "Task added successfully", task: addTask });
-        } else {
-            return res.status(400).json({ message: "Task already added" });
+        // Ensure the logged-in user exists
+        let admin = await user.findById(req.user.id);
+        if (!admin) {
+            return res.status(404).json({ message: "Admin not found" });
         }
+
+        // Check if the task with the same title exists 
+        const findSameTask = await task.findOne({ title: req.body.title });
+        if (findSameTask) {
+            return res.status(400).json({ message: "Task with this title already exists" });
+        }
+
+        req.body.taskAuthor = req.user.username;
+        const newTask = await task.create(req.body);
+        admin.task.push(newTask._id);
+        await admin.save();
+
+        return res.status(200).json({ message: "Task added successfully", task: newTask });
+
     } catch (error) {
-        console.log(error);
+        console.error(error);
         return res.status(500).json({ message: "Server Error", error: error.message });
     }
 };
+
 
 // VIEW ALL TASK
 exports.viewAllTasks = async (req, res) => {
